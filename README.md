@@ -2,7 +2,7 @@
 
 A Bitcoin blockchain REST and web socket API service for [Fcash Node](https://github.com/fcash-wallet/fcash-de).
 
-This is a backend-only service. If you're looking for the web frontend application, take a look at https://github.com/fcash-wallet/insight-ui.
+This is a backend-only service. If you're looking for the web frontend application, take a look at https://github.com/fcash-wallet/fcash-insight-ui.
 
 ## Getting Started
 
@@ -15,7 +15,7 @@ fcash install insight-ui
 fcash start
 ```
 
-The API endpoints will be available by default at: `http://localhost:3001/insight-api/`
+The API endpoints will be available by default at: `http://localhost:3001/fcash-insight-api/`
 
 ## Prerequisites
 
@@ -110,7 +110,7 @@ To protect the server, insight-api has a built it query rate limiter. It can be 
     }
   }
 ```
-With all the configuration options available: https://github.com/fcash-wallet/insight-api/blob/master/lib/ratelimiter.js#L10-17
+With all the configuration options available: https://github.com/fcash-wallet/fcash-insight-api/blob/master/lib/ratelimiter.js#L10-17
 
 Or disabled entirely with:
 ``` json
@@ -126,15 +126,15 @@ Or disabled entirely with:
 
 ### Block
 ```
-  /insight-api/block/[:hash]
-  /insight-api/block/00000000a967199a2fad0877433c93df785a8d8ce062e5f9b451cd1397bdbf62
+  /fcash-insight-api/block/[:hash]
+  /fcash-insight-api/block/00000000a967199a2fad0877433c93df785a8d8ce062e5f9b451cd1397bdbf62
 ```
 
 ### Block Index
 Get block hash by height
 ```
-  /insight-api/block-index/[:height]
-  /insight-api/block-index/0
+  /fcash-insight-api/block-index/[:height]
+  /fcash-insight-api/block-index/0
 ```
 This would return:
 ```
@@ -147,8 +147,8 @@ which is the hash of the Genesis block (0 height)
 
 ### Raw Block
 ```
-  /insight-api/rawblock/[:blockHash]
-  /insight-api/rawblock/[:blockHeight]
+  /fcash-insight-api/rawblock/[:blockHash]
+  /fcash-insight-api/rawblock/[:blockHeight]
 ```
 
 This would return:
@@ -162,7 +162,7 @@ This would return:
 
 Get block summaries by date:
 ```
-  /insight-api/blocks?limit=3&blockDate=2016-04-22
+  /fcash-insight-api/blocks?limit=3&blockDate=2016-04-22
 ```
 
 Example response:
@@ -196,31 +196,31 @@ Example response:
 
 ### Transaction
 ```
-  /insight-api/tx/[:txid]
-  /insight-api/tx/525de308971eabd941b139f46c7198b5af9479325c2395db7f2fb5ae8562556c
-  /insight-api/rawtx/[:rawid]
-  /insight-api/rawtx/525de308971eabd941b139f46c7198b5af9479325c2395db7f2fb5ae8562556c
+  /fcash-insight-api/tx/[:txid]
+  /fcash-insight-api/tx/525de308971eabd941b139f46c7198b5af9479325c2395db7f2fb5ae8562556c
+  /fcash-insight-api/rawtx/[:rawid]
+  /fcash-insight-api/rawtx/525de308971eabd941b139f46c7198b5af9479325c2395db7f2fb5ae8562556c
 ```
 
 ### Address
 ```
-  /insight-api/addr/[:addr][?noTxList=1][&from=&to=]
-  /insight-api/addr/mmvP3mTe53qxHdPqXEvdu8WdC7GfQ2vmx5?noTxList=1
-  /insight-api/addr/mmvP3mTe53qxHdPqXEvdu8WdC7GfQ2vmx5?from=1000&to=2000
+  /fcash-insight-api/addr/[:addr][?noTxList=1][&from=&to=]
+  /fcash-insight-api/addr/mmvP3mTe53qxHdPqXEvdu8WdC7GfQ2vmx5?noTxList=1
+  /fcash-insight-api/addr/mmvP3mTe53qxHdPqXEvdu8WdC7GfQ2vmx5?from=1000&to=2000
 ```
 
 ### Address Properties
 ```
-  /insight-api/addr/[:addr]/balance
-  /insight-api/addr/[:addr]/totalReceived
-  /insight-api/addr/[:addr]/totalSent
-  /insight-api/addr/[:addr]/unconfirmedBalance
+  /fcash-insight-api/addr/[:addr]/balance
+  /fcash-insight-api/addr/[:addr]/totalReceived
+  /fcash-insight-api/addr/[:addr]/totalSent
+  /fcash-insight-api/addr/[:addr]/unconfirmedBalance
 ```
 The response contains the value in Satoshis.
 
 ### Unspent Outputs
 ```
-  /insight-api/addr/[:addr]/utxo
+  /fcash-insight-api/addr/[:addr]/utxo
 ```
 Sample return:
 ```
@@ -251,13 +251,13 @@ Sample return:
 ### Unspent Outputs for Multiple Addresses
 GET method:
 ```
-  /insight-api/addrs/[:addrs]/utxo
-  /insight-api/addrs/2NF2baYuJAkCKo5onjUKEPdARQkZ6SYyKd5,2NAre8sX2povnjy4aeiHKeEh97Qhn97tB1f/utxo
+  /fcash-insight-api/addrs/[:addrs]/utxo
+  /fcash-insight-api/addrs/2NF2baYuJAkCKo5onjUKEPdARQkZ6SYyKd5,2NAre8sX2povnjy4aeiHKeEh97Qhn97tB1f/utxo
 ```
 
 POST method:
 ```
-  /insight-api/addrs/utxo
+  /fcash-insight-api/addrs/utxo
 ```
 
 POST params:
@@ -267,25 +267,25 @@ addrs: 2NF2baYuJAkCKo5onjUKEPdARQkZ6SYyKd5,2NAre8sX2povnjy4aeiHKeEh97Qhn97tB1f
 
 ### Transactions by Block
 ```
-  /insight-api/txs/?block=HASH
-  /insight-api/txs/?block=00000000fa6cf7367e50ad14eb0ca4737131f256fc4c5841fd3c3f140140e6b6
+  /fcash-insight-api/txs/?block=HASH
+  /fcash-insight-api/txs/?block=00000000fa6cf7367e50ad14eb0ca4737131f256fc4c5841fd3c3f140140e6b6
 ```
 ### Transactions by Address
 ```
-  /insight-api/txs/?address=ADDR
-  /insight-api/txs/?address=mmhmMNfBiZZ37g1tgg2t8DDbNoEdqKVxAL
+  /fcash-insight-api/txs/?address=ADDR
+  /fcash-insight-api/txs/?address=mmhmMNfBiZZ37g1tgg2t8DDbNoEdqKVxAL
 ```
 
 ### Transactions for Multiple Addresses
 GET method:
 ```
-  /insight-api/addrs/[:addrs]/txs[?from=&to=]
-  /insight-api/addrs/2NF2baYuJAkCKo5onjUKEPdARQkZ6SYyKd5,2NAre8sX2povnjy4aeiHKeEh97Qhn97tB1f/txs?from=0&to=20
+  /fcash-insight-api/addrs/[:addrs]/txs[?from=&to=]
+  /fcash-insight-api/addrs/2NF2baYuJAkCKo5onjUKEPdARQkZ6SYyKd5,2NAre8sX2povnjy4aeiHKeEh97Qhn97tB1f/txs?from=0&to=20
 ```
 
 POST method:
 ```
-  /insight-api/addrs/txs
+  /fcash-insight-api/addrs/txs
 ```
 
 POST params:
@@ -331,7 +331,7 @@ Note: if pagination params are not specified, the result is an array of transact
 ### Transaction Broadcasting
 POST method:
 ```
-  /insight-api/tx/send
+  /fcash-insight-api/tx/send
 ```
 POST params:
 ```
@@ -357,17 +357,17 @@ POST response:
 
 ### Historic Blockchain Data Sync Status
 ```
-  /insight-api/sync
+  /fcash-insight-api/sync
 ```
 
 ### Live Network P2P Data Sync Status
 ```
-  /insight-api/peer
+  /fcash-insight-api/peer
 ```
 
 ### Status of the Bitcoin Network
 ```
-  /insight-api/status?q=xxx
+  /fcash-insight-api/status?q=xxx
 ```
 
 Where "xxx" can be:
@@ -380,7 +380,7 @@ Where "xxx" can be:
 
 ### Utility Methods
 ```
-  /insight-api/utils/estimatefee[?nbBlocks=2]
+  /fcash-insight-api/utils/estimatefee[?nbBlocks=2]
 ```
 
 
