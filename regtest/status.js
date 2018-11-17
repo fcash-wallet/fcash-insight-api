@@ -28,7 +28,7 @@ var rpc1 = new RPC(rpcConfig);
 rpcConfig.port++;
 var rpc2 = new RPC(rpcConfig);
 var debug = true;
-var bitcoreDataDir = '/tmp/bitcore';
+var fcashDataDir = '/tmp/fcash';
 var bitcoinDataDirs = ['/tmp/bitcoin1', '/tmp/bitcoin2'];
 
 var bitcoin = {
@@ -47,13 +47,13 @@ var bitcoin = {
   processes: []
 };
 
-var bitcore = {
+var fcash = {
   configFile: {
-    file: bitcoreDataDir + '/bitcore-node.json',
+    file: fcashDataDir + '/fcash-node.json',
     conf: {
       network: 'regtest',
       port: 53001,
-      datadir: bitcoreDataDir,
+      datadir: fcashDataDir,
       services: [
         'p2p',
         'db',
@@ -93,9 +93,9 @@ var bitcore = {
     hostname: 'localhost',
     port: 53001,
   },
-  opts: { cwd: bitcoreDataDir },
-  datadir: bitcoreDataDir,
-  exec: 'bitcored',
+  opts: { cwd: fcashDataDir },
+  datadir: fcashDataDir,
+  exec: 'fcashd',
   args: ['start'],
   process: null
 };
@@ -180,9 +180,9 @@ var shutdownBitcoind = function(callback) {
   setTimeout(callback, 3000);
 };
 
-var shutdownBitcore = function(callback) {
-  if (bitcore.process) {
-    bitcore.process.kill();
+var shutdownFcash = function(callback) {
+  if (fcash.process) {
+    fcash.process.kill();
   }
   callback();
 };
@@ -262,33 +262,33 @@ var buildInitialChain = function(callback) {
 
 };
 
-var startBitcore = function(callback) {
+var startFcash = function(callback) {
 
-  rimraf(bitcoreDataDir, function(err) {
+  rimraf(fcashDataDir, function(err) {
 
     if(err) {
       return callback(err);
     }
 
-    mkdirp(bitcoreDataDir, function(err) {
+    mkdirp(fcashDataDir, function(err) {
 
       if(err) {
         return callback(err);
       }
 
-      fs.writeFileSync(bitcore.configFile.file, JSON.stringify(bitcore.configFile.conf));
+      fs.writeFileSync(fcash.configFile.file, JSON.stringify(fcash.configFile.conf));
 
-      var args = bitcore.args;
-      bitcore.process = spawn(bitcore.exec, args, bitcore.opts);
+      var args = fcash.args;
+      fcash.process = spawn(fcash.exec, args, fcash.opts);
 
-      bitcore.process.stdout.on('data', function(data) {
+      fcash.process.stdout.on('data', function(data) {
 
         if (debug) {
           process.stdout.write(data.toString());
         }
 
       });
-      bitcore.process.stderr.on('data', function(data) {
+      fcash.process.stderr.on('data', function(data) {
 
         if (debug) {
           process.stderr.write(data.toString());
@@ -321,7 +321,7 @@ describe('Status', function() {
       },
       function(next) {
         setTimeout(function() {
-          startBitcore(next);
+          startFcash(next);
         }, 6000);
       }
     ], function(err) {
@@ -334,7 +334,7 @@ describe('Status', function() {
   });
 
   after(function(done) {
-    shutdownBitcore(function() {
+    shutdownFcash(function() {
       shutdownBitcoind(done);
     });
   });
@@ -350,7 +350,7 @@ describe('Status', function() {
           return;
         }
 
-        return done('Error from bitcore-node webserver: ' + res.statusCode);
+        return done('Error from fcash-node webserver: ' + res.statusCode);
 
       }
 
@@ -390,7 +390,7 @@ describe('Status', function() {
           return;
         }
 
-        return done('Error from bitcore-node webserver: ' + res.statusCode);
+        return done('Error from fcash-node webserver: ' + res.statusCode);
 
       }
 
@@ -431,7 +431,7 @@ describe('Status', function() {
           return;
         }
 
-        return done('Error from bitcore-node webserver: ' + res.statusCode);
+        return done('Error from fcash-node webserver: ' + res.statusCode);
 
       }
 
@@ -472,7 +472,7 @@ describe('Status', function() {
           return;
         }
 
-        return done('Error from bitcore-node webserver: ' + res.statusCode);
+        return done('Error from fcash-node webserver: ' + res.statusCode);
 
       }
 
@@ -515,7 +515,7 @@ describe('Status', function() {
           return;
         }
 
-        return done('Error from bitcore-node webserver: ' + res.statusCode);
+        return done('Error from fcash-node webserver: ' + res.statusCode);
 
       }
 

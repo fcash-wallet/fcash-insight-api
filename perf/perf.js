@@ -8,9 +8,9 @@ var fs = require('fs');
 var async = require('async');
 var RPC = require('bitcoind-rpc');
 var http = require('http');
-var bitcore = require('bitcore-lib');
-var PrivateKey = bitcore.PrivateKey;
-var Transaction = bitcore.Transaction;
+var fcash = require('fcash-lib');
+var PrivateKey = fcash.PrivateKey;
+var Transaction = fcash.Transaction;
 
 console.log('This test takes a really long time to run, be patient.');
 
@@ -31,7 +31,7 @@ var utxoCount = 3000;
 var outputKeys = [];
 var rpc1 = new RPC(rpcConfig);
 var debug = true;
-var bitcoreDataDir = '/tmp/bitcore';
+var fcashDataDir = '/tmp/fcash';
 var bitcoinDataDirs = ['/tmp/bitcoin'];
 
 var bitcoin = {
@@ -50,13 +50,13 @@ var bitcoin = {
   processes: []
 };
 
-var bitcore = {
+var fcash = {
   configFile: {
-    file: bitcoreDataDir + '/bitcore-node.json',
+    file: fcashDataDir + '/fcash-node.json',
     conf: {
       network: 'regtest',
       port: 53001,
-      datadir: bitcoreDataDir,
+      datadir: fcashDataDir,
       services: [
         'p2p',
         'db',
@@ -87,9 +87,9 @@ var bitcore = {
     hostname: 'localhost',
     port: 53001,
   },
-  opts: { cwd: bitcoreDataDir },
-  datadir: bitcoreDataDir,
-  exec: 'bitcored',  //if this isn't on your PATH, then provide the absolute path, e.g. /usr/local/bin/bitcored
+  opts: { cwd: fcashDataDir },
+  datadir: fcashDataDir,
+  exec: 'fcashd',  //if this isn't on your PATH, then provide the absolute path, e.g. /usr/local/bin/fcashd
   args: ['start'],
   process: null
 };
@@ -174,7 +174,7 @@ var request = function(httpOpts, callback) {
   var request = http.request(httpOpts, function(res) {
 
     if (res.statusCode !== 200 && res.statusCode !== 201) {
-      return callback('Error from bitcore-node webserver: ' + res.statusCode);
+      return callback('Error from fcash-node webserver: ' + res.statusCode);
     }
 
     var resError;
@@ -214,9 +214,9 @@ var shutdownBitcoind = function(callback) {
   setTimeout(callback, 3000);
 };
 
-var shutdownBitcore = function(callback) {
-  if (bitcore.process) {
-    bitcore.process.kill();
+var shutdownFcash = function(callback) {
+  if (fcash.process) {
+    fcash.process.kill();
   }
   callback();
 };
@@ -324,26 +324,26 @@ var buildInitialChain = function(callback) {
   });
 };
 
-var startBitcore = function(callback) {
+var startFcash = function(callback) {
 
-  rimraf(bitcoreDataDir, function(err) {
+  rimraf(fcashDataDir, function(err) {
 
     if(err) {
       return callback(err);
     }
 
-    mkdirp(bitcoreDataDir, function(err) {
+    mkdirp(fcashDataDir, function(err) {
 
       if(err) {
         return callback(err);
       }
 
-      fs.writeFileSync(bitcore.configFile.file, JSON.stringify(bitcore.configFile.conf));
+      fs.writeFileSync(fcash.configFile.file, JSON.stringify(fcash.configFile.conf));
 
-      var args = bitcore.args;
-      bitcore.process = spawn(bitcore.exec, args, bitcore.opts);
+      var args = fcash.args;
+      fcash.process = spawn(fcash.exec, args, fcash.opts);
 
-      bitcore.process.stdout.on('data', function(data) {
+      fcash.process.stdout.on('data', function(data) {
 
         if (debug) {
           process.stdout.write(data.toString());
@@ -351,7 +351,7 @@ var startBitcore = function(callback) {
 
       });
 
-      bitcore.process.stderr.on('data', function(data) {
+      fcash.process.stderr.on('data', function(data) {
 
         if (debug) {
           process.stderr.write(data.toString());
@@ -404,14 +404,14 @@ describe('Address Performance', function() {
         buildInitialChain(next);
       },
       function(next) {
-        startBitcore(next);
+        startFcash(next);
       }
     ], done);
 
   });
 
   after(function(done) {
-    shutdownBitcore(function() {
+    shutdownFcash(function() {
       shutdownBitcoind(done);
     });
   });

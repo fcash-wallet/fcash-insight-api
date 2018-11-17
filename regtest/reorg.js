@@ -20,14 +20,14 @@ var fs = require('fs');
 var async = require('async');
 var RPC = require('bitcoind-rpc');
 var http = require('http');
-var bitcore = require('bitcore-lib');
+var fcash = require('fcash-lib');
 var exec = require('child_process').exec;
 var net = require('net');
-var p2p = require('bitcore-p2p');
-var bitcore = require('bitcore-lib');
-var Networks = bitcore.Networks;
-var BlockHeader = bitcore.BlockHeader;
-var Block = bitcore.Block;
+var p2p = require('fcash-p2p');
+var fcash = require('fcash-lib');
+var Networks = fcash.Networks;
+var BlockHeader = fcash.BlockHeader;
+var Block = fcash.Block;
 var bcoin = require('bcoin');
 var BcoinBlock = bcoin.block;
 var BcoinTx = bcoin.tx;
@@ -147,7 +147,7 @@ var TestBitcoind = function TestBitcoind() {
       }
 
       if (command === 'getheaders') {
-        msg.push(messages.Headers(self._getHeaders())); // these are bitcore block headers
+        msg.push(messages.Headers(self._getHeaders())); // these are fcash block headers
       }
 
       if (command === 'getblocks') {
@@ -223,7 +223,7 @@ var rpc1 = new RPC(rpcConfig);
 rpcConfig.port++;
 var rpc2 = new RPC(rpcConfig);
 var debug = true;
-var bitcoreDataDir = '/tmp/bitcore';
+var fcashDataDir = '/tmp/fcash';
 var bitcoinDir1 = '/tmp/bitcoin1';
 var bitcoinDir2 = '/tmp/bitcoin2';
 var bitcoinDataDirs = [ bitcoinDir1, bitcoinDir2 ];
@@ -244,13 +244,13 @@ var bitcoin = {
   processes: []
 };
 
-var bitcore = {
+var fcash = {
   configFile: {
-    file: bitcoreDataDir + '/bitcore-node.json',
+    file: fcashDataDir + '/fcash-node.json',
     conf: {
       network: 'regtest',
       port: 53001,
-      datadir: bitcoreDataDir,
+      datadir: fcashDataDir,
       services: [
         'p2p',
         'db',
@@ -284,9 +284,9 @@ var bitcore = {
     hostname: 'localhost',
     port: 53001,
   },
-  opts: { cwd: bitcoreDataDir },
-  datadir: bitcoreDataDir,
-  exec: 'bitcored',  //if this isn't on your PATH, then provide the absolute path, e.g. /usr/local/bin/bitcored
+  opts: { cwd: fcashDataDir },
+  datadir: fcashDataDir,
+  exec: 'fcashd',  //if this isn't on your PATH, then provide the absolute path, e.g. /usr/local/bin/fcashd
   args: ['start'],
   process: null
 };
@@ -296,7 +296,7 @@ var request = function(httpOpts, callback) {
   var request = http.request(httpOpts, function(res) {
 
     if (res.statusCode !== 200 && res.statusCode !== 201) {
-      return callback('Error from bitcore-node webserver: ' + res.statusCode);
+      return callback('Error from fcash-node webserver: ' + res.statusCode);
     }
 
     var resError;
@@ -469,24 +469,24 @@ var shutdownBitcoind = function(callback) {
   setTimeout(callback, 3000);
 };
 
-var shutdownBitcore = function(callback) {
-  if (bitcore.process) {
-    bitcore.process.kill();
+var shutdownFcash = function(callback) {
+  if (fcash.process) {
+    fcash.process.kill();
   }
   callback();
 };
 
-var writeBitcoreConf = function() {
-  fs.writeFileSync(bitcore.configFile.file, JSON.stringify(bitcore.configFile.conf));
+var writeFcashConf = function() {
+  fs.writeFileSync(fcash.configFile.file, JSON.stringify(fcash.configFile.conf));
 };
 
-var startBitcore = function(callback) {
+var startFcash = function(callback) {
 
-  var args = bitcore.args;
-  console.log('Using bitcored from: ');
+  var args = fcash.args;
+  console.log('Using fcashd from: ');
   async.series([
     function(next) {
-      exec('which bitcored', function(err, stdout, stderr) {
+      exec('which fcashd', function(err, stdout, stderr) {
         if(err) {
           return next(err);
         }
@@ -495,16 +495,16 @@ var startBitcore = function(callback) {
       });
     },
     function(next) {
-      bitcore.process = spawn(bitcore.exec, args, bitcore.opts);
+      fcash.process = spawn(fcash.exec, args, fcash.opts);
 
-      bitcore.process.stdout.on('data', function(data) {
+      fcash.process.stdout.on('data', function(data) {
 
         if (debug) {
           process.stdout.write(data.toString());
         }
 
       });
-      bitcore.process.stderr.on('data', function(data) {
+      fcash.process.stderr.on('data', function(data) {
 
         if (debug) {
           process.stderr.write(data.toString());
@@ -521,7 +521,7 @@ var startBitcore = function(callback) {
 var sync100Blocks = function(callback) {
   // regtests can generate high numbers of blocks all at one time, but
   // the full node may not relay those blocks faithfully. This is a problem
-  // with the full node and not bitcore. So, generate blocks at a slow rate
+  // with the full node and not fcash. So, generate blocks at a slow rate
   async.timesSeries(100, function(n, next) {
     rpc2.generate(1, function(err) {
       if (err) {
@@ -544,12 +544,12 @@ var performTest1 = function(callback) {
     // 0. reset the test directories
     function(next) {
       console.log('step 0: setting up directories.');
-      var dirs = bitcoinDataDirs.concat([bitcoreDataDir]);
+      var dirs = bitcoinDataDirs.concat([fcashDataDir]);
       resetDirs(dirs, function(err) {
         if (err) {
           return next(err);
         }
-        writeBitcoreConf();
+        writeFcashConf();
         next();
       });
     },
@@ -593,14 +593,14 @@ var performTest1 = function(callback) {
         });
       }, next);
     },
-    // 5. start up bitcore and let it sync the 10 blocks
+    // 5. start up fcash and let it sync the 10 blocks
     function(next) {
-      console.log('step 5: starting bitcore...');
-      startBitcore(next);
+      console.log('step 5: starting fcash...');
+      startFcash(next);
     },
     function(next) {
       // 6. shut down both bitcoind's
-      console.log('bitcore is running and sync\'ed.');
+      console.log('fcash is running and sync\'ed.');
       console.log('step 6: shutting down all bitcoind\'s.');
       shutdownBitcoind(next);
     },
@@ -625,14 +625,14 @@ var performTest1 = function(callback) {
       console.log('generating 100 blocks on bitcoin 2.');
       sync100Blocks(next);
     },
-    // 9. let bitcore connect and sync those 100 blocks
+    // 9. let fcash connect and sync those 100 blocks
     function(next) {
-      console.log('step 9: syncing 100 blocks to bitcore.');
+      console.log('step 9: syncing 100 blocks to fcash.');
       waitForBlocksGenerated(next);
     },
     // 10. shutdown the second bitcoind
     function(next) {
-      console.log('100 more blocks synced to bitcore.');
+      console.log('100 more blocks synced to fcash.');
       console.log('step 10: shutting down bitcoin 2.');
       shutdownBitcoind(next);
     },
@@ -664,9 +664,9 @@ var performTest1 = function(callback) {
         next();
       });
     },
-    // 13. let bitcore sync that block and reorg back to it
+    // 13. let fcash sync that block and reorg back to it
     function(next) {
-      console.log('step 13: Waiting for bitcore to reorg to block height 11.');
+      console.log('step 13: Waiting for fcash to reorg to block height 11.');
       waitForBlocksGenerated(next);
     }
   ], function(err) {
@@ -686,13 +686,13 @@ var performTest2 = function(fakeServer, callback) {
     // 0. reset the test directories
     function(next) {
       console.log('step 0: setting up directories.');
-      bitcore.configFile.conf.servicesConfig.header = { slowMode: 1000 };
-      var dirs = bitcoinDataDirs.concat([bitcoreDataDir]);
+      fcash.configFile.conf.servicesConfig.header = { slowMode: 1000 };
+      var dirs = bitcoinDataDirs.concat([fcashDataDir]);
       resetDirs(dirs, function(err) {
         if (err) {
           return next(err);
         }
-        writeBitcoreConf();
+        writeFcashConf();
         next();
       });
     },
@@ -702,17 +702,17 @@ var performTest2 = function(fakeServer, callback) {
       fakeServer.start();
       next();
     },
-    // 2. init server with blocks (the initial set from which bitcore will sync)
+    // 2. init server with blocks (the initial set from which fcash will sync)
     function(next) {
-      console.log('step 2: init server with blocks (the initial set from which bitcore will sync)');
+      console.log('step 2: init server with blocks (the initial set from which fcash will sync)');
       next();
     },
-    // 3. start bitcore in slow mode (slow the block service's sync speed down so we
+    // 3. start fcash in slow mode (slow the block service's sync speed down so we
     // can send a reorg block to the header service while the block service is still syncing.
     function(next) {
-      console.log('step 3: start bitcore in slow mode.');
+      console.log('step 3: start fcash in slow mode.');
       blocksGenerated = 4;
-      startBitcore(next);
+      startFcash(next);
     },
     function(next) {
       console.log('step 4: send a block in to reorg the header service without reorging the block service.');
@@ -737,13 +737,13 @@ var performTest3 = function(fakeServer, callback) {
     // 0. reset the test directories
     function(next) {
       console.log('step 0: setting up directories.');
-      bitcore.configFile.conf.servicesConfig.header = { slowMode: 1000 };
-      var dirs = bitcoinDataDirs.concat([bitcoreDataDir]);
+      fcash.configFile.conf.servicesConfig.header = { slowMode: 1000 };
+      var dirs = bitcoinDataDirs.concat([fcashDataDir]);
       resetDirs(dirs, function(err) {
         if (err) {
           return next(err);
         }
-        writeBitcoreConf();
+        writeFcashConf();
         next();
       });
     },
@@ -753,17 +753,17 @@ var performTest3 = function(fakeServer, callback) {
       fakeServer.start();
       next();
     },
-    // 2. init server with blocks (the initial set from which bitcore will sync)
+    // 2. init server with blocks (the initial set from which fcash will sync)
     function(next) {
-      console.log('step 2: init server with blocks (the initial set from which bitcore will sync)');
+      console.log('step 2: init server with blocks (the initial set from which fcash will sync)');
       next();
     },
-    // 3. start bitcore in slow mode (slow the block service's sync speed down so we
+    // 3. start fcash in slow mode (slow the block service's sync speed down so we
     // can send a reorg block to the header service while the block service is still syncing.
     function(next) {
-      console.log('step 3: start bitcore in slow mode.');
+      console.log('step 3: start fcash in slow mode.');
       blocksGenerated = 6;
-      startBitcore(next);
+      startFcash(next);
     },
     function(next) {
       console.log('step 4: send a block in to reorg the header service without reorging the block service.');
@@ -796,12 +796,12 @@ var performTest4 = function(fakeServer, callback) {
     // 0. reset the test directories
     function(next) {
       console.log('step 0: setting up directories.');
-      var dirs = bitcoinDataDirs.concat([bitcoreDataDir]);
+      var dirs = bitcoinDataDirs.concat([fcashDataDir]);
       resetDirs(dirs, function(err) {
         if (err) {
           return next(err);
         }
-        writeBitcoreConf();
+        writeFcashConf();
         next();
       });
     },
@@ -811,16 +811,16 @@ var performTest4 = function(fakeServer, callback) {
       fakeServer.start();
       next();
     },
-    // 2. start bitcore
+    // 2. start fcash
     function(next) {
-      console.log('step 2: start bitcore and let sync.');
+      console.log('step 2: start fcash and let sync.');
       blocksGenerated = 7;
-      startBitcore(next);
+      startFcash(next);
     },
-    // 3. shutdown bitcore
+    // 3. shutdown fcash
     function(next) {
-      console.log('step 3: shut down bitcore.');
-      shutdownBitcore(next);
+      console.log('step 3: shut down fcash.');
+      shutdownFcash(next);
     },
     // 4. setup the fake server to send a reorg'ed set of headers
     function(next) {
@@ -829,11 +829,11 @@ var performTest4 = function(fakeServer, callback) {
       fakeServer.reorientData(reorgBlock);
       next();
     },
-    // 5. start up bitcore once again
+    // 5. start up fcash once again
     function(next) {
-      console.log('step 5: start up bitcore.');
+      console.log('step 5: start up fcash.');
       blocksGenerated = 7;
-      startBitcore(next);
+      startFcash(next);
     }
   ], function(err) {
     if (err) {
@@ -851,12 +851,12 @@ var performTest5 = function(fakeServer, callback) {
     // 0. reset the test directories
     function(next) {
       console.log('step 0: setting up directories.');
-      var dirs = bitcoinDataDirs.concat([bitcoreDataDir]);
+      var dirs = bitcoinDataDirs.concat([fcashDataDir]);
       resetDirs(dirs, function(err) {
         if (err) {
           return next(err);
         }
-        writeBitcoreConf();
+        writeFcashConf();
         next();
       });
     },
@@ -866,11 +866,11 @@ var performTest5 = function(fakeServer, callback) {
       fakeServer.start();
       next();
     },
-    // 2. start bitcore
+    // 2. start fcash
     function(next) {
-      console.log('step 2: start bitcore and let sync.');
+      console.log('step 2: start fcash and let sync.');
       blocksGenerated = 7;
-      startBitcore(next);
+      startFcash(next);
     },
     // 3. send in a block that has nothing to do with anything in my chain.
     function(next) {
@@ -895,13 +895,13 @@ describe('Reorg', function() {
   describe('Reorg case 1: block service fully sync\'ed, p2p block subscription active  (normal operating mode)', function() {
 
     after(function(done) {
-      shutdownBitcore(function() {
+      shutdownFcash(function() {
         shutdownBitcoind(done);
       });
     });
 
     // case 1.
-    it('should reorg correctly when bitcore reconnects to a peer that is not yet sync\'ed, but when a block does come in, it is a reorg block.', function(done) {
+    it('should reorg correctly when fcash reconnects to a peer that is not yet sync\'ed, but when a block does come in, it is a reorg block.', function(done) {
       /*
          What this test does:
 
@@ -910,15 +910,15 @@ describe('Reorg', function() {
          step 2: check to see if bitcoind's are connected to each other.
          step 3: generate 10 blocks on bitcoin 1.
          step 4: check for synced blocks between bitcoinds.
-         step 5: start bitcore
+         step 5: start fcash
          step 6: shut down all bitcoind's.
          step 7: change config of bitcoin 2 and restart it.
          step 8: generate 100 blocks on bitcoin 2.
-         step 9: sync 100 blocks to bitcore.
+         step 9: sync 100 blocks to fcash.
          step 10: shut down bitcoin 2.
          step 11: start up bitcoin 1
          step 12: generate 1 block
-         step 13: Wait for bitcore to reorg to block height 11.
+         step 13: Wait for fcash to reorg to block height 11.
        */
 
 
@@ -964,7 +964,7 @@ describe('Reorg', function() {
       });
 
       after(function(done) {
-        shutdownBitcore(function() {
+        shutdownFcash(function() {
           fakeServer.stop();
           done();
         });
@@ -977,13 +977,13 @@ describe('Reorg', function() {
 
            step 0: setup directories
            step 1: start fake server (fake bitcoin)
-           step 2: init server with blocks (the initial set from which bitcore will sync)
-           step 3: start bitcore in slow mode (slow the block service's sync speed down so we
+           step 2: init server with blocks (the initial set from which fcash will sync)
+           step 3: start fcash in slow mode (slow the block service's sync speed down so we
            can send a reorg block to the header service while the block service is still syncing.
            step 4: send an inventory message with a reorg block hash
 
            the header service will get this message, discover the reorg, handle the reorg
-           and call onHeaders on the block service, query bitcore for the results
+           and call onHeaders on the block service, query fcash for the results
          */
         performTest2(fakeServer, function(err) {
 
@@ -1027,7 +1027,7 @@ describe('Reorg', function() {
         });
 
         after(function(done) {
-          shutdownBitcore(function() {
+          shutdownFcash(function() {
             fakeServer.stop();
             done();
           });
@@ -1040,8 +1040,8 @@ describe('Reorg', function() {
 
              step 0: setup directories
              step 1: start fake server (fake bitcoin)
-             step 2: init server with blocks (the initial set from which bitcore will sync)
-             step 3: start bitcore in slow mode
+             step 2: init server with blocks (the initial set from which fcash will sync)
+             step 3: start fcash in slow mode
              step 4: send an inventory message with a reorg block hash
 
          */
@@ -1086,7 +1086,7 @@ describe('Reorg', function() {
       });
 
       after(function(done) {
-        shutdownBitcore(function() {
+        shutdownFcash(function() {
           fakeServer.stop();
           done();
         });
@@ -1129,7 +1129,7 @@ describe('Reorg', function() {
       });
 
       after(function(done) {
-        shutdownBitcore(function() {
+        shutdownFcash(function() {
           fakeServer.stop();
           done();
         });
