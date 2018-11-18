@@ -17,10 +17,10 @@ var blocksGenerated = 0;
 
 var rpcConfig = {
   protocol: 'http',
-  user: 'local',
-  pass: 'localtest',
+  user: 'fcashuser',
+  pass: 'fcashpass',
   host: '127.0.0.1',
-  port: 58332,
+  port: 59527,
   rejectUnauthorized: false
 };
 
@@ -37,13 +37,13 @@ var bitcoin = {
     listen: 1,
     regtest: 1,
     server: 1,
-    rpcuser: 'local',
-    rpcpassword: 'localtest',
+    rpcuser: 'fcashuser',
+    rpcpassword: 'fcashpass',
     //printtoconsole: 1,
-    rpcport: 58332,
+    rpcport: 59527,
   },
   datadir: null,
-  exec: 'bitcoind', //if this isn't on your PATH, then provide the absolute path, e.g. /usr/local/bin/bitcoind
+  exec: 'fcashd', //if this isn't on your PATH, then provide the absolute path, e.g. /usr/local/bin/bitcoind
   processes: []
 };
 
